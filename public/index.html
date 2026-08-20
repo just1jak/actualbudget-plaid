@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Actual Plaid Manager</title>
+        <link rel="stylesheet" href="/public/styles.css" />
+        <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+        <script defer src="/public/app.js"></script>
+    </head>
+    <body>
+        <div id="app" class="shell">
+            <aside class="sidebar">
+                <div class="budget-name">Actual Plaid</div>
+                <nav class="sidebar-nav" aria-label="Plaid manager">
+                    <a class="sidebar-nav__item is-active" href="#institutions">Connections</a>
+                    <a class="sidebar-nav__item" href="#actual-accounts">Accounts</a>
+                </nav>
+                <div class="sidebar-summary">
+                    <div class="sidebar-summary__row">
+                        <span>Institutions</span>
+                        <strong id="sidebar-institution-count">0</strong>
+                    </div>
+                    <div class="sidebar-summary__row">
+                        <span>Mapped</span>
+                        <strong id="sidebar-mapping-count">0</strong>
+                    </div>
+                </div>
+                <div class="sidebar-footer" id="subtitle">Loading...</div>
+            </aside>
+
+            <div class="workspace">
+                <header class="topbar">
+                    <div>
+                        <h1>Plaid connections</h1>
+                        <p id="page-summary">Manage Plaid accounts linked to Actual.</p>
+                    </div>
+                    <div class="topbar__actions">
+                        <input id="config-import-input" class="is-hidden" type="file" accept="application/json,.json" />
+                        <button id="import-config-button" class="button button--ghost" type="button">Import config</button>
+                        <button id="refresh-button" class="button button--ghost" type="button">Refresh</button>
+                        <button id="import-all-button" class="button button--secondary" type="button">Import all</button>
+                        <button id="link-button" class="button button--primary" type="button">Add institution</button>
+                    </div>
+                </header>
+
+                <section id="status-panel" class="status-grid" aria-live="polite"></section>
+
+                <section id="budget-panel" class="setup-panel is-hidden">
+                    <div>
+                        <h2>Budget sync ID required</h2>
+                        <p>Add the sync ID from Actual settings before mapping or creating accounts.</p>
+                    </div>
+                    <form id="budget-form" class="inline-form">
+                        <input id="budget-id-input" type="text" autocomplete="off" placeholder="Actual budget sync ID" />
+                        <button class="button button--primary" type="submit">Save</button>
+                    </form>
+                </section>
+
+                <section id="connection-note" class="connection-note is-hidden"></section>
+
+                <main class="content-grid">
+                    <section class="main-column">
+                        <div class="section-heading">
+                            <h2>Institutions</h2>
+                            <span id="institution-count" class="muted"></span>
+                        </div>
+                        <div id="institutions"></div>
+                    </section>
+
+                    <section class="actual-section">
+                        <div class="section-heading">
+                            <h2>Actual accounts</h2>
+                            <span id="actual-count" class="muted"></span>
+                        </div>
+                        <div id="actual-accounts" class="account-list"></div>
+                    </section>
+                </main>
+            </div>
+
+            <div id="toast" class="toast" role="status" aria-live="polite"></div>
+        </div>
+    </body>
+</html>
