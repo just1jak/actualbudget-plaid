@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+temp_data_actual
+coverage
+*.log
+*.sqlite*
+*.db
+config
+backups

@@ -1,0 +1,12 @@
+node_modules/
+.vscode/
+.env
+.env.*
+!.env.example
+temp_data_actual/
+coverage/
+*.log
+*.sqlite*
+*.db
+config/
+backups/
