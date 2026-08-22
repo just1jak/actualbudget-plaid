@@ -312,12 +312,14 @@ function renderPlaidAccountRow(account) {
 
 function renderMappedControls(account) {
     const lastImport = account.lastImportResult;
-    const isValueOnly = lastImport && lastImport.trackingMode === "value-only";
+    const isValueOnly = account.type === "investment" || (lastImport && lastImport.trackingMode === "value-only");
     const valueTimestamp = lastImport && lastImport.balanceAsOf
         ? new Date(lastImport.balanceAsOf).toLocaleString()
         : null;
-    const importDetail = isValueOnly
+    const importDetail = isValueOnly && lastImport
         ? `Value tracking | Current value ${money(lastImport.plaidBalance / 100)}${valueTimestamp ? ` | as of ${valueTimestamp}` : ""}`
+        : isValueOnly
+            ? "Value tracking ready; run an import to refresh the current value"
         : lastImport
             ? `${lastImport.receivedCount || 0} received | ${lastImport.addedCount || 0} new | ${lastImport.alreadyPresentCount || 0} already present`
         : "Sync enabled";
@@ -328,7 +330,7 @@ function renderMappedControls(account) {
         : null;
     const valueAdjustmentDetail = isValueOnly
         ? account.valueAdjustmentEnabled
-            ? `Automatic adjustment enabled${lastImport.valueAdjustmentStatus ? ` | ${lastImport.valueAdjustmentStatus}` : ""}`
+            ? `Automatic adjustment enabled${lastImport && lastImport.valueAdjustmentStatus ? ` | ${lastImport.valueAdjustmentStatus}` : ""}`
             : "Automatic adjustment disabled"
         : null;
 

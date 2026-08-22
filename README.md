@@ -195,8 +195,9 @@ incorrect mapping.
 
 ## Investment value tracking
 
-For an investment account, the manager can use Plaid's current account value to
-maintain one synthetic Actual transaction named `Investment Value Adjustment`.
+For an investment account, the manager refreshes Plaid's current account value
+through the Balance endpoint instead of requiring the Transactions product, then
+can maintain one synthetic Actual transaction named `Investment Value Adjustment`.
 Each refresh updates that same transaction instead of adding daily market-gain
 transactions, so the Actual account balance follows the latest reported value.
 

@@ -45,12 +45,29 @@ function getAppConfigFromEnv() {
         ACTUAL_SERVER_ENCRYPTION_PASSWORD
     }
 
-    // Assert that all required environment variables are set
-    Object.entries(appConfig).forEach(([key, value]) => {
+    // The budget encryption password is optional for unencrypted budgets.
+    const requiredConfig = {
+        APP_PORT,
+        APP_BIND_ADDRESS,
+        APP_URL,
+        PLAID_CLIENT_ID,
+        PLAID_ENV,
+        PLAID_PRODUCTS,
+        PLAID_LANGUAGE,
+        PLAID_COUNTRY_CODES,
+        ACTUAL_SERVER_URL,
+        ACTUAL_SERVER_PASSWORD,
+    };
+
+    Object.entries(requiredConfig).forEach(([key, value]) => {
         if (!value) {
             throw new Error(`Missing environment variable: ${key}`);
         }
-    })
+    });
+
+    if (!PLAID_SECRETS[PLAID_ENV]) {
+        throw new Error(`Missing Plaid secret for environment: ${PLAID_ENV}`);
+    }
 
     return appConfig
 }

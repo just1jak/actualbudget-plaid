@@ -648,6 +648,15 @@ async function fetchTransactions(plaidClient, accessToken, startDate, endDate) {
     return { transactions, accounts };
 }
 
+async function fetchAccountBalances(plaidClient, accessToken) {
+    const request = { access_token: accessToken };
+    const response = typeof plaidClient.accountsBalanceGet === "function"
+        ? await plaidClient.accountsBalanceGet(request)
+        : await plaidClient.accountsGet(request);
+
+    return response.data.accounts || [];
+}
+
 async function runImport(config, plaidClient, flags = {}) {
     const {
         initialize,
@@ -674,6 +683,7 @@ async function runImport(config, plaidClient, flags = {}) {
     let actualInstance;
     const endDate = formatDate(new Date());
     const transactionsPerToken = {};
+    const balancesPerToken = {};
     const results = [];
 
     try {
@@ -687,20 +697,50 @@ async function runImport(config, plaidClient, flags = {}) {
             return transactionsPerToken[key];
         };
 
+        const cachedBalances = async (token) => {
+            if (!balancesPerToken[token]) {
+                balancesPerToken[token] = await fetchAccountBalances(plaidClient, token);
+            }
+            return balancesPerToken[token];
+        };
+
         for (let [actualId, account] of accountsToSync) {
             const plaidAccountId = accountIdFromEntry(account);
             try {
-                const startDate = formatDate(
-                    flags.since ||
-                    await getLastTransactionDate(actualInstance, actualId)
-                );
-                const plaidResult = await cachedTransactions(account.plaidToken, startDate);
-                const transactionsForThisAccount = plaidResult.transactions.filter(
-                    (transaction) => transaction.account_id === plaidAccountId
-                );
-                const currentPlaidAccount = plaidResult.accounts.find(
-                    (candidate) => candidate.account_id === plaidAccountId
-                ) || account.plaidAccount || {};
+                const storedPlaidAccount = account.plaidAccount || {};
+                const isInvestment = storedPlaidAccount.type === "investment";
+                let startDate = endDate;
+                let transactionsForThisAccount = [];
+                let currentPlaidAccount;
+                let importResult = null;
+
+                if (isInvestment) {
+                    const accounts = await cachedBalances(account.plaidToken);
+                    currentPlaidAccount = accounts.find(
+                        (candidate) => candidate.account_id === plaidAccountId
+                    );
+                    if (!currentPlaidAccount) {
+                        throw new Error("Plaid did not return this investment account during balance refresh. Re-authenticate the institution and confirm the account is selected.");
+                    }
+                } else {
+                    startDate = formatDate(
+                        flags.since ||
+                        await getLastTransactionDate(actualInstance, actualId)
+                    );
+                    const plaidResult = await cachedTransactions(account.plaidToken, startDate);
+                    transactionsForThisAccount = plaidResult.transactions.filter(
+                        (transaction) => transaction.account_id === plaidAccountId
+                    );
+                    currentPlaidAccount = plaidResult.accounts.find(
+                        (candidate) => candidate.account_id === plaidAccountId
+                    ) || storedPlaidAccount;
+                    importResult = await importPlaidTransactions(
+                        actualInstance,
+                        actualId,
+                        account.plaidBankName,
+                        transactionsForThisAccount
+                    );
+                }
                 const storedPlaidAccounts = config.get("plaidAccounts") || {};
                 const storedPlaidEntry = storedPlaidAccounts[plaidAccountId];
                 if (storedPlaidEntry && currentPlaidAccount.account_id) {
@@ -709,12 +749,6 @@ async function runImport(config, plaidClient, flags = {}) {
                         ...currentPlaidAccount,
                     });
                 }
-                const importResult = await importPlaidTransactions(
-                    actualInstance,
-                    actualId,
-                    account.plaidBankName,
-                    transactionsForThisAccount
-                );
                 const receivedCount = transactionsForThisAccount.length;
                 const submittedCount = receivedCount;
                 const addedCount = countImportResult(importResult && importResult.added);
@@ -730,7 +764,6 @@ async function runImport(config, plaidClient, flags = {}) {
                 const balanceDifference = plaidBalance === null || actualBalance === null
                     ? null
                     : actualBalance - plaidBalance;
-                const isInvestment = currentPlaidAccount.type === "investment";
                 const previousPlaidBalance = account.lastImportResult
                     ? account.lastImportResult.plaidBalance
                     : null;
@@ -870,5 +903,6 @@ module.exports = {
     createAndMapActualAccount,
     createLinkToken,
     storePlaidAccountsFromLink,
+    fetchAccountBalances,
     runImport,
 };

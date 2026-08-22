@@ -25,6 +25,7 @@ const {
     countImportResult,
     plaidBalanceInCents,
     numericActualBalance,
+    fetchAccountBalances,
 } = require("../manager.js");
 const { calculateInvestmentValueAdjustment } = require("../actual.js");
 
@@ -171,6 +172,26 @@ test("Plaid balances use Actual sign conventions and integer cents", () => {
 test("investment value adjustment replaces the prior managed amount", () => {
     assert.equal(calculateInvestmentValueAdjustment(20629200, 20532744, 0), -96456);
     assert.equal(calculateInvestmentValueAdjustment(20532744, 20400000, -96456), -229200);
+});
+
+test("investment balance refresh uses Plaid's balance endpoint", async () => {
+    let balanceCalls = 0;
+    let accountCalls = 0;
+    const accounts = await fetchAccountBalances({
+        async accountsBalanceGet(request) {
+            balanceCalls += 1;
+            assert.equal(request.access_token, "access-token");
+            return { data: { accounts: [plaidInvestment] } };
+        },
+        async accountsGet() {
+            accountCalls += 1;
+            return { data: { accounts: [] } };
+        },
+    }, "access-token");
+
+    assert.equal(balanceCalls, 1);
+    assert.equal(accountCalls, 0);
+    assert.equal(accounts[0].account_id, "plaid-investment");
 });
 
 test("setMapping and unmapActualAccount update actualSync only", () => {
