@@ -6,6 +6,9 @@ try {
     }
 }
 
+const os = require("os");
+const path = require("path");
+
 const ACTUAL_SERVER_URL = process.env.ACTUAL_SERVER_URL || "";
 const ACTUAL_SERVER_PASSWORD = process.env.ACTUAL_SERVER_PASSWORD || "";
 const ACTUAL_SERVER_ENCRYPTION_PASSWORD = process.env.ACTUAL_SERVER_ENCRYPTION_PASSWORD || "";
@@ -28,6 +31,14 @@ const PLAID_PRODUCTS = (process.env.PLAID_PRODUCTS || "transactions").split(
 );
 const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || "US").split(",");
 const PLAID_LANGUAGE = (process.env.PLAID_LANGUAGE || "en")
+
+function getConfigDirectory() {
+    return process.env.ACTUALPLAID_CONFIG_DIR || path.join(
+        os.homedir(),
+        ".config",
+        "actualplaid-cli-nodejs"
+    );
+}
 
 function getAppConfigFromEnv() {
     const appConfig = {
@@ -79,7 +90,8 @@ function getConf(username) {
     const Conf = require("conf");
 
     const tmp = new Conf({
-        configName: key
+        configName: key,
+        cwd: getConfigDirectory(),
     });
     tmp.set("user", key);
     return tmp;
@@ -87,5 +99,6 @@ function getConf(username) {
 
 module.exports = {
     getAppConfigFromEnv,
+    getConfigDirectory,
     getConf
 }

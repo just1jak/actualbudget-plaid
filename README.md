@@ -112,6 +112,7 @@ Set these values in the untracked `.env` file:
 | `ACTUAL_SERVER_URL` | URL the bridge uses to reach Actual Server |
 | `ACTUAL_SERVER_PASSWORD` | Actual Server login password |
 | `ACTUAL_SERVER_ENCRYPTION_PASSWORD` | Optional budget encryption password |
+| `ACTUALPLAID_CONFIG_DIR` | Optional config directory override; defaults to the legacy-compatible path |
 | `APP_PORT` | Manager port; defaults to `3000` |
 | `APP_BIND_ADDRESS` | Listen address; defaults to loopback for safety |
 | `APP_URL` | Browser-facing URL used by the CLI |
@@ -218,6 +219,9 @@ dividends, or cost basis.
 The persistent configuration contains the budget Sync ID, mappings, institution
 metadata, and Plaid access tokens. Back it up only to encrypted, private storage.
 Never attach it to a GitHub issue or include it in a repository.
+
+The bridge deliberately keeps using `.config/actualplaid-cli-nodejs` so upgrades
+from the original package name continue to find the same private configuration.
 
 Removing the configuration volume removes the bridge's stored Plaid Items and
 mappings, but it does not remove transactions or accounts from Actual.

@@ -1,6 +1,6 @@
 {
 	"name": "actual-budget-plaid-bridge",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Self-hosted Plaid transaction and investment-value bridge for Actual Budget",
 	"main": "cli.js",
 	"scripts": {

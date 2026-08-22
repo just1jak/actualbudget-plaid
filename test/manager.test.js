@@ -28,6 +28,7 @@ const {
     fetchAccountBalances,
 } = require("../manager.js");
 const { calculateInvestmentValueAdjustment } = require("../actual.js");
+const { getConfigDirectory } = require("../config.js");
 
 function getPath(target, path) {
     return path.split(".").reduce((value, key) => {
@@ -80,6 +81,10 @@ const plaidInvestment = {
     subtype: "brokerage",
     balances: { current: 5000, available: null },
 };
+
+test("config directory remains compatible with existing installations", () => {
+    assert.equal(getConfigDirectory().endsWith("/.config/actualplaid-cli-nodejs"), true);
+});
 
 test("migrateConfig derives item metadata from legacy Plaid account records", () => {
     const config = fakeConfig({
